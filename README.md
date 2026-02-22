@@ -24,7 +24,6 @@ It automatically configures:
 - Optimized database settings
 - Production-ready web server config
 
-validation-shell
 ![Validation Shell Prompt](images/validation-shell-600.jpg) ![Script User Settings](images/user-settings-600.jpg)
 ![Piwigo PHP 8.3](images/piwigo-environment-php83-600.jpg) ![Piwigo PHP 8.4](images/piwigo-environment-php84-600.jpg)
 
