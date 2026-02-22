@@ -2,7 +2,7 @@
 ## Piwigo Jail Installer for TrueNAS CORE 13.5  
 ### Version v2.0 – Dynamic RAM Scaling Edition
 
-![Piwigo First Installation Page](images/first-install.jpg)
+![Piwigo First Installation Page](images/first-install-600.jpg)
 
 ---
 
@@ -25,8 +25,8 @@ It automatically configures:
 - Production-ready web server config
 
 validation-shell
-![Validation Shell Prompt](images/validation-shell.jpg) ![Script User Settings](images/user-settings.jpg)
-![Piwigo PHP 8.3](images/piwigo-environment-php83.jpg) ![Piwigo PHP 8.4](images/piwigo-environment-php84.jpg)
+![Validation Shell Prompt](images/validation-shell-600.jpg) ![Script User Settings](images/user-settings-600.jpg)
+![Piwigo PHP 8.3](images/piwigo-environment-php83-600.jpg) ![Piwigo PHP 8.4](images/piwigo-environment-php84-600.jpg)
 
 ---
 
@@ -279,7 +279,7 @@ Otherwise authentication may fail.
 Outside jail:
 
 ```bash
-iocage upgrade -r 13.5-RELEASE Piwigo_135
+iocage upgrade -r 13.5-RELEASE jail_name
 ```
 
 Inside jail:
@@ -325,3 +325,5 @@ pkg upgrade -y
 # 🚀 Enjoy Your Self-Hosted Gallery
 
 If you found this useful, consider starring the repository ⭐
+
+![Script User Settings](images/piwigo-gallery.jpg.jpg)
