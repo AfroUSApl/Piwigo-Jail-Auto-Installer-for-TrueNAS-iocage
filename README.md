@@ -1,7 +1,9 @@
 # Piwigo-Jail-Auto-Installer-for-TrueNAS-iocage
 ## Piwigo Jail Installer for TrueNAS CORE 13.5  
 ### Version v2.0 – Dynamic RAM Scaling Edition
+
 ![Piwigo First Installation Page](images/first-install.jpg)
+
 ---
 
 ## 📌 Overview
@@ -21,6 +23,8 @@ It automatically configures:
 - Secure PHP-FPM pool
 - Optimized database settings
 - Production-ready web server config
+
+![Piwigo PHP 8.3](images/piwigo-environment-php83.jpg) ![Piwigo PHP 8.4](images/piwigo-environment-php84.jpg)
 
 ---
 
