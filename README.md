@@ -172,8 +172,8 @@ iocage fstab -a Piwigo_135 /mnt/tank/piwigo/galleries /usr/local/www/piwigo/gall
 ## 1️⃣ Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/iocage-plugin-piwigo.git
-cd iocage-plugin-piwigo
+git clone https://github.com/AfroUSApl/Piwigo-Jail-Auto-Installer-for-TrueNAS-iocage.git
+cd Piwigo-Jail-Auto-Installer-for-TrueNAS-iocage
 ```
 
 ## 2️⃣ Edit Configuration
