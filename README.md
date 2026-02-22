@@ -353,5 +353,4 @@ All configurations completed successfully.
 If you found this useful, consider starring the repository ⭐
 
 ![Piwigo Gallery View](images/piwigo-gallery.jpg)
-![Piwigo PHP 8.3](images/piwigo-environment-php83-600.jpg)
-![Piwigo PHP 8.4](images/piwigo-environment-php84-600.jpg)
+
