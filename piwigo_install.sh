@@ -174,7 +174,6 @@ iocage create -n "${JAIL_NAME}" \
   vnet=on
 
 iocage start "${JAIL_NAME}"
-fi
     
 # Fix /tmp permissions (CRITICAL for MariaDB and pkg)
 iocage exec ${JAIL_NAME} chown root:wheel /tmp
@@ -417,7 +416,12 @@ echo "Downloading Piwigo..."
 echo ""
 iocage exec ${JAIL_NAME} mkdir -p /usr/local/www
 iocage exec ${JAIL_NAME} fetch https://piwigo.org/download/dlcounter.php?code=latest -o /tmp/piwigo.zip
-iocage exec ${JAIL_NAME} unzip /tmp/piwigo.zip -d /usr/local/www/
+echo ""
+echo "Extracting Piwigo files..."
+iocage exec ${JAIL_NAME} unzip -q /tmp/piwigo.zip -d /usr/local/www/
+echo ""
+echo "Extraction complete."
+echo ""
 
 iocage exec ${JAIL_NAME} chown -R www:www /usr/local/www/piwigo
 iocage exec ${JAIL_NAME} chmod -R 755 /usr/local/www/piwigo
