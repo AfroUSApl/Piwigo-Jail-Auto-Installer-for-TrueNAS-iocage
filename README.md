@@ -325,6 +325,6 @@ pkg upgrade -y
 
 If you found this useful, consider starring the repository ⭐
 
-![Script User Settings](images/piwigo-gallery.jpg.jpg)
+![Piwigo Gallery View](images/piwigo-gallery.jpg)
 ![Piwigo PHP 8.3](images/piwigo-environment-php83-600.jpg)
 ![Piwigo PHP 8.4](images/piwigo-environment-php84-600.jpg)
