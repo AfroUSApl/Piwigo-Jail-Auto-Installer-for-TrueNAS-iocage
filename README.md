@@ -312,6 +312,33 @@ pkg upgrade -y
 
 ---
 
+# 🧪 Tested Environment
+
+This installer has been tested multiple times under the following conditions:
+- TrueNAS CORE 13.0 U7
+- Jail release: 13.5-RELEASE
+- CPU: Intel Xeon E3-1270v2
+- 16GB RAM
+- ZFS mirror (WD Red)
+- SSD system pool
+- lagg0 network interface
+
+Test scenarios performed:
+- Fresh install with PHP 8.3 (Caddy + nginx)
+- Fresh install with PHP 8.4 (Caddy + nginx)
+- Repeated clean jail recreation
+- MariaDB 10.11 initialization
+- PHP-FPM socket configuration validation
+- OPcache validation
+- Large image upload testing
+
+All configurations completed successfully.
+
+![Piwigo PHP 8.3](images/piwigo-environment-php83-600.jpg)
+![Piwigo PHP 8.4](images/piwigo-environment-php84-600.jpg)
+
+---
+
 # ⚠ Disclaimer
 
 - Not an official iXsystems plugin.
