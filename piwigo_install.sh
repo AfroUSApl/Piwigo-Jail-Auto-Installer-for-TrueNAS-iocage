@@ -623,8 +623,8 @@ echo ""
 # Extends PHP timeouts for large uploads
 # Enables structured logging
 # Keeps configuration clean (Caddy smart defaults)
-
-iocage exec ${JAIL_NAME} sh -c 'cat > /usr/local/etc/caddy/Caddyfile <<EOF
+echo "DEBUG: UPLOAD_LIMIT = ${UPLOAD_LIMIT}"
+iocage exec "${JAIL_NAME}" sh -c "cat > /usr/local/etc/caddy/Caddyfile <<EOF
 :80 {
 
     root * /usr/local/www/piwigo
@@ -685,7 +685,7 @@ iocage exec ${JAIL_NAME} sh -c 'cat > /usr/local/etc/caddy/Caddyfile <<EOF
         format console
     }
 }
-EOF'
+EOF"
 
 fi
 
@@ -747,8 +747,7 @@ echo Database Password: ${DB_PASS}
 echo ""
 echo MariaDB Root Password: ${DB_ROOT_PASS}
 echo ""
-echo Piwigo Location:
-echo http://${IP}/
+echo Piwigo Location: http://${IP}/
 echo ""
 echo ---------------------------------------
 echo "Access your Piwigo instance via jail ${IP}."
