@@ -15,7 +15,7 @@
 #
 #
 #
-JAIL_NAME="Piwigo_caddy"                 	# your jail name
+JAIL_NAME="Piwigo_caddy"                # your jail name
 RELEASE="13.5-RELEASE"                  # release to install
 TIMEZONE="Europe/London"                # timezone
 WEB_SERVER="caddy"                      # choose: caddy or nginx
