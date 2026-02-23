@@ -1,6 +1,6 @@
 # Piwigo-Jail-Auto-Installer-for-TrueNAS-iocage
 ## Piwigo Jail Installer for TrueNAS CORE 13.5  
-### Version v2.0 – Dynamic RAM Scaling Edition
+### Version v2.1 – Dynamic RAM Scaling Edition
 
 ![Validation Shell Prompt](images/validation-shell-600.jpg)
 
@@ -38,7 +38,7 @@ It automatically configures:
 
 ---
 
-# 🚀 What’s New in v2.0
+# 🚀 What’s New in v2.1
 
 - ✅ Automatic RAM detection
 - ✅ Dynamic scaling for 4GB → 64GB+ servers
@@ -49,6 +49,7 @@ It automatically configures:
 - ✅ Proper jail existence detection
 - ✅ Caddy or Nginx selectable
 - ✅ Production-grade performance defaults
+- ✅ Progress Spinner and ASCII colors
 
 ---
 
@@ -305,7 +306,7 @@ pkg upgrade -y
 # 🏷 Version Information
 
 - TrueNAS Target: 13.5-RELEASE
-- Script Version: v2.0
+- Script Version: v2.1
 - PHP: 8.4
 - MariaDB: 10.11
 - Web Server: Caddy or Nginx
