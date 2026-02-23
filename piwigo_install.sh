@@ -2,6 +2,7 @@
 
 ##############################################################################
 #			PIWIGO JAIL INSTALL SCRIPT
+#			Piwigo Jail Installer v2.0
 #			TrueNAS CORE 13.5-RELEASE
 #	Caddy/Nginx + PHP 8.3/8.4 + MariaDB 10.11 + RAM Tuning Profiles
 ##############################################################################
@@ -14,21 +15,21 @@
 #
 #
 #
-JAIL_NAME="Piwigo_nginx"                # your jail name
+JAIL_NAME="Piwigo_caddy"                # your jail name
 RELEASE="13.5-RELEASE"                  # release to install
 TIMEZONE="Europe/London"                # timezone
-WEB_SERVER="nginx"                      # choose: caddy or nginx
+WEB_SERVER="caddy"                      # choose: caddy or nginx
 PHP_VERSION="84"			# version of PHP you want to install
 MARIADB_VERSION="1011"			# version of mariadb you want to install
 #
 INTERFACE="vnet0"                       # network interface
+APP_NAME="Piwigo"                       # info file name
 DB_TYPE="MariaDB"			# type of maria database
 DB_NAME="piwigo"			# name of database used by Piwigo
 DB_USER="piwigo"			# name of user for database used by Piwigo
 #
 AUTO_RAM="yes"                          # yes or no
 SERVER_RAM="8"                          # used only if AUTO_RAM=no
-VER="2.1"				# script version
 #
 #
 #
@@ -62,6 +63,50 @@ else
     echo "AUTO_RAM disabled → Using manual ${SERVER_RAM}GB profile"
 fi
 
+##############################################################################
+#                           VALIDATION
+##############################################################################
+echo "Starting installation..."
+echo ""
+echo "--------------------------------------------------"
+echo "      Piwigo Jail Installation Settings v2.0"
+echo "--------------------------------------------------"
+echo "Jail Name           : ${JAIL_NAME}"
+echo "Release             : ${RELEASE}"
+echo "Web Server          : ${WEB_SERVER}"
+echo "Timezone            : ${TIMEZONE}"
+echo "PHP Version         : ${PHP_VERSION}"
+echo "MariaDB Version     : ${MARIADB_VERSION}"
+echo ""
+echo "Interface           : ${INTERFACE}"
+echo "Application         : ${APP_NAME}"
+echo "Database Type       : ${DB_TYPE}"
+echo "Database Name       : ${DB_NAME}"
+echo "Database User       : ${DB_USER}"
+echo ""
+echo "Auto RAM Enabled    : ${AUTO_RAM}" 
+echo "Effective RAM       : ${SERVER_RAM}GB"
+echo "--------------------------------------------------"
+echo ""
+read -p "Do you want to proceed with installation? (y/n): " CONFIRM
+
+case "$CONFIRM" in
+    [Yy]) ;;
+    *)
+        echo "Installation cancelled."
+        exit 1
+        ;;
+esac
+
+if [ "$WEB_SERVER" != "caddy" ] && [ "$WEB_SERVER" != "nginx" ]; then
+    echo "ERROR: WEB_SERVER must be 'caddy' or 'nginx'"
+    exit 1
+fi
+
+if ! [ $(id -u) = 0 ]; then
+   echo "This script must be run with root privileges"
+   exit 1
+fi
 # SAFETY CHECK
 if [ "$SERVER_RAM" != "4" ] && \
    [ "$SERVER_RAM" != "8" ] && \
@@ -108,102 +153,18 @@ else
 fi
 
 ##############################################################################
-#                           COLOR DEFINITIONS
-##############################################################################
-RED="\033[1;31m"
-GREEN="\033[1;32m"
-YELLOW="\033[1;33m"
-BLUE="\033[1;34m"
-CYAN="\033[1;36m"
-BOLD="\033[1m"
-NC="\033[0m"
-
-section() {
-    echo ""
-    printf "${BLUE}${BOLD}======================================================================${NC}\n"
-    printf "${BLUE}${BOLD} %-20s${NC}%s\n" "" "$1"
-    printf "${BLUE}${BOLD}======================================================================${NC}\n"
-}
-
-ok() {
-    printf "${GREEN}[✔ OK]${NC} %s\n" "$1"
-}
-
-error_msg() {
-    printf "${RED}[✘ ERROR]${NC} %s\n" "$1"
-}
-
-info() {
-    printf "${CYAN}[🛈]${NC} %s\n" "$1"
-}
-
-progress() {
-    printf "${YELLOW}→${NC} %s\n" "$1"
-}
-
-##############################################################################
-#                           VALIDATION
-##############################################################################
-echo ""
-section "PIWIGO JAIL INSTALLER ${VER}"
-echo ""
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Jail Name"        "${JAIL_NAME}"
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Release"          "${RELEASE}"
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Web Server"       "${WEB_SERVER}"
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "PHP Version"      "8.${PHP_VERSION}"
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "MariaDB Version"  "${MARIADB_VERSION}"
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Timezone"         "${TIMEZONE}"
-echo ""
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Network Interface" "${INTERFACE}"
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Database Type"     "${DB_TYPE}"
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Database Name"     "${DB_NAME}"
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Database User"     "${DB_USER}"
-echo ""
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Auto RAM Detection" "${AUTO_RAM}"
-printf "${YELLOW}${BOLD} %-22s :${NC} %s GB\n" "Effective RAM Class" "${SERVER_RAM}"
-echo ""
-printf "${BLUE}${BOLD}======================================================================${NC}\n"
-echo ""
-
-read -p "Do you want to proceed with installation? (y/n): " CONFIRM
-case "$CONFIRM" in
-    [Yy]) ok "User confirmed installation." ;;
-    *) error_msg "Installation cancelled."; exit 1 ;;
-esac
-
-if [ "$WEB_SERVER" != "caddy" ] && [ "$WEB_SERVER" != "nginx" ]; then
-    error_msg "ERROR: WEB_SERVER must be 'caddy' or 'nginx' !"
-    exit 1
-fi
-
-if ! [ $(id -u) = 0 ]; then
-   error_msg "This script must be run with root privileges"
-   exit 1
-fi
-
-
-##############################################################################
 #                           JAIL CREATION
 ##############################################################################
 
-echo ""
+echo "Creating jail ${JAIL_NAME}..."
 
-progress "Checking if jail ${JAIL_NAME} exists..."
 if iocage get host_hostname "${JAIL_NAME}" >/dev/null 2>&1; then
-    error_msg "Jail ${JAIL_NAME} already exists!"
+    echo ""
+    echo "ERROR: Jail ${JAIL_NAME} already exists!"
+    echo "Destroy it or use different name in JAIL_NAME="${JAIL_NAME}""
     echo ""
     exit 1
 fi
-ok "No jail ${JAIL_NAME} detected..."
-echo ""
-echo "→ Proceeding with installation."
-#if iocage get host_hostname "${JAIL_NAME}" >/dev/null 2>&1; then
-#    echo ""
-#    echo "ERROR: Jail ${JAIL_NAME} already exists!"
-#    echo "Destroy it or use different name in JAIL_NAME="${JAIL_NAME}""
-#    echo ""
-#    exit 1
-#fi
 
 iocage create -n "${JAIL_NAME}" \
   -r "${RELEASE}" \
@@ -223,68 +184,30 @@ iocage exec ${JAIL_NAME} mkdir -p /usr/local/www/piwigo/upload
 iocage exec ${JAIL_NAME} mkdir -p /usr/local/www/piwigo/local/config
 
 # Setting timezone
-echo "→ Setting timezone to ${TIMEZONE}"
+echo "Setting timezone...${TIMEZONE}"
 iocage exec ${JAIL_NAME} sh -c "
 if [ -e /etc/localtime ]; then
     rm -f /etc/localtime
 fi
 ln -s /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
 "
-ok "Done."
+
 ##############################################################################
 #                           PACKAGE INSTALL
 ##############################################################################
 echo ""
-echo "→ Bootstrapping pkg..."
+echo "Bootstrapping pkg..."
 echo ""
 iocage exec ${JAIL_NAME} env ASSUME_ALWAYS_YES=yes pkg bootstrap -f
-ok "Done."
 echo ""
-echo "→ Updating packages..."
+echo "Updating packages..."
 echo ""
-iocage exec ${JAIL_NAME} pkg update -f
-ok "Done."
+iocage exec ${JAIL_NAME} pkg update
 echo ""
-echo "→ Installing packages..."
+echo "Installing packages..."
 echo ""
-echo "→ Base packages..."
-echo "ImageMagick7-nox11, p5-Image-ExifTool, mediainfo, unzip bzip2, ffmpeg, curl, wget, nano, sudo"
-printf "Please wait..."
-
-spinner() {
-    pid=$1
-    spin='|/-\'
-    i=0
-    
-    tput civis 2>/dev/null
-
-    while kill -0 "$pid" 2>/dev/null; do
-        i=$(( (i+1) % 4 ))
-        case $i in
-            0) char='|' ;;
-            1) char='/' ;;
-            2) char='-' ;;
-            3) char='\' ;;
-        esac
-        printf "\r\033[1;33m[%s] Processing...\033[0m" "$char"
-        sleep 0.1
-    done
-
-    wait "$pid"
-    status=$?
-    tput cnorm 2>/dev/null
-    
-    if [ $status -eq 0 ]; then
-        echo""
-        printf "\r\033[1;32m[✔ OK]\033[0m Done.         \033[0m\n"
-    else
-        echo ""
-        printf "\r\033[1;31m[✘ ] Failed.          \033[0m\n"
-        exit 1
-    fi
-}
-
-iocage exec ${JAIL_NAME} pkg install -y -q \
+# Base packages
+iocage exec ${JAIL_NAME} pkg install -y \
     ImageMagick7-nox11 \
     p5-Image-ExifTool \
     mediainfo \
@@ -294,14 +217,10 @@ iocage exec ${JAIL_NAME} pkg install -y -q \
     curl \
     wget \
     nano \
-    sudo &
-spinner $!
-echo ""
-ok "Base packages installed correctly!"
-ok "Done."
-echo ""
-section "Installing PHP${PHP_VERSION}"
-iocage exec ${JAIL_NAME} pkg install -y -q \
+    sudo
+
+# PHP
+iocage exec ${JAIL_NAME} pkg install -y \
     php${PHP_VERSION} \
     php${PHP_VERSION}-curl \
     php${PHP_VERSION}-intl \
@@ -319,47 +238,42 @@ iocage exec ${JAIL_NAME} pkg install -y -q \
     php${PHP_VERSION}-xml \
     php${PHP_VERSION}-zlib \
     php${PHP_VERSION}-zip \
-    php${PHP_VERSION}-opcache &
-spinner $!
+    php${PHP_VERSION}-opcache
 
+
+#    php${PHP_VERSION}-extensions \
+#    php${PHP_VERSION}-ctype \
+#    php${PHP_VERSION}-dom \
+#    php${PHP_VERSION}-iconv \
+#    php${PHP_VERSION}-tokenizer \
 iocage exec ${JAIL_NAME} sysrc php_fpm_enable="YES"
 
 # MariaDB
-echo "→ Installing mariadb ${MARIADB_VERSION} server..."
-iocage exec ${JAIL_NAME} pkg install -y -q mariadb${MARIADB_VERSION}-server
-ok "Done."
-echo ""
-echo "→ Installing mariadb${MARIADB_VERSION}-client..."
-iocage exec ${JAIL_NAME} pkg install -y -q mariadb${MARIADB_VERSION}-client
-ok "Done."
-echo "→ Activating mariadb${MARIADB_VERSION} service..."
+iocage exec ${JAIL_NAME} pkg install -y \
+    mariadb${MARIADB_VERSION}-server \
+    mariadb${MARIADB_VERSION}-client
+
 iocage exec ${JAIL_NAME} sysrc mysql_enable="YES"
 iocage exec ${JAIL_NAME} mkdir -p /var/run/mysql
 iocage exec ${JAIL_NAME} chown mysql:mysql /var/run/mysql
-ok "Done."
 
 # Web server selection
 if [ "$WEB_SERVER" = "caddy" ]; then
-    echo "→ Installing CADDY..."
-    iocage exec ${JAIL_NAME} pkg install -y -q caddy
+    iocage exec ${JAIL_NAME} pkg install -y caddy
     iocage exec ${JAIL_NAME} sysrc caddy_enable="YES"
-    ok "Done."
 elif [ "$WEB_SERVER" = "nginx" ]; then
-    echo "→ Installing NGINX..."
-    iocage exec ${JAIL_NAME} pkg install -y -q nginx
+    iocage exec ${JAIL_NAME} pkg install -y nginx
     iocage exec ${JAIL_NAME} sysrc nginx_enable="YES"
     iocage exec ${JAIL_NAME} mkdir -p /usr/local/etc/nginx/
-    ok "Done."
 fi
-ok "$WEB_SERVER installed correctly!"
+
 ##############################################################################
 #                           PHP + PHP-FPM Tuning
 ##############################################################################
 echo ""
-section "Configuring PHP..."
+echo "Configuring PHP..."
 echo ""
 iocage exec ${JAIL_NAME} cp /usr/local/etc/php.ini-production /usr/local/etc/php.ini
-ok "Done."
 ##############################################################################
 #                           PHP-FPM Pool Tuning
 ##############################################################################
@@ -378,14 +292,6 @@ ok "Done."
 # Burst image uploads
 # Gallery browsing spikes
 # Moderate concurrency
-echo ""
-echo "→ Applying PHP-FPM tuning..."
-echo ""
-printf " %-64s : %s\n" "Maximum simultaneous PHP requests the server can process at once"        "${PHP_CHILDREN}"
-printf " %-64s : %s\n" "Number of PHP workers started immediately at service launch"        "${PHP_START}"
-printf " %-64s : %s\n" "Minimum idle PHP workers kept ready for sudden traffic spikes"        "${PHP_MIN_SPARE}"
-printf " %-64s : %s\n" "Maximum idle workers allowed before scaling down"        "${PHP_MAX_SPARE}"
-echo ""
 iocage exec ${JAIL_NAME} sh -c "
 # Disable default www pool
 mv /usr/local/etc/php-fpm.d/www.conf \
@@ -411,7 +317,7 @@ pm.max_requests = 500
 request_terminate_timeout = 300
 EOF
 "
-ok "Done."
+
 ##############################################################################
 #                           php.ini Tuning
 ##############################################################################
@@ -429,14 +335,6 @@ ok "Done."
 # Why this matters:
 # OPcache dramatically reduces PHP CPU usage.
 # 512MB memory prevents large RAW image failures.
-echo ""
-echo "→ Applying PHP core tuning (php.ini)..."
-echo ""
-printf " %-60s : %s\n" "Maximum memory a single PHP script may consume"        "${PHP_MEM}"
-printf " %-60s : %s\n" "Maximum allowed file upload size"        "${UPLOAD_LIMIT}"
-printf " %-60s : %s\n" "Maximum total POST request size [must match upload limit]"        "${UPLOAD_LIMIT}"
-printf " %-60s : %s\n" "OPcache memory reserved for compiled PHP scripts"        "${OPCACHE_MEM}M"
-echo ""
 iocage exec ${JAIL_NAME} sh -c "
 sed -i '' \
 -e 's|^memory_limit = .*|memory_limit = ${PHP_MEM}|' \
@@ -451,7 +349,7 @@ sed -i '' \
 -e 's|^;*opcache.revalidate_freq=.*|opcache.revalidate_freq=60|' \
 /usr/local/etc/php.ini
 "
-ok "Done."
+
 ##############################################################################
 #                           MariaDB Tuning
 ##############################################################################
@@ -467,11 +365,7 @@ ok "Done."
 # Enables utf8mb4 (full Unicode support, emoji safe)
 # Uses utf8mb4_unicode_ci collation
 echo ""
-section "Applying MariaDB tuning..."
-echo ""
-printf " %-50s : %s\n" "InnoDB buffer pool size [database cache in RAM]"        "${INNODB_POOL}"
-printf " %-50s : %s\n" "InnoDB log file size [write performance buffer]"        "${INNODB_LOG}"
-printf " %-50s : %s\n" "Maximum concurrent database connections"        "${MAX_CONN}"
+echo "Applying MariaDB tuning..."
 echo ""
 iocage exec ${JAIL_NAME} mkdir -p /usr/local/etc/mysql/conf.d
 iocage exec ${JAIL_NAME} sh -c "cat > /usr/local/etc/mysql/conf.d/piwigo.cnf <<EOF
@@ -495,12 +389,12 @@ thread_cache_size=100
 character-set-server=utf8mb4
 collation-server=utf8mb4_unicode_ci
 EOF"
-ok "Done."
+
 ##############################################################################
 #                           DATABASE SETUP
 ##############################################################################
 echo ""
-section "Starting MariaDB..."
+echo "Starting MariaDB..."
 echo ""
 iocage exec ${JAIL_NAME} service mysql-server start
 
@@ -513,29 +407,24 @@ CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';
 GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';
 FLUSH PRIVILEGES;
 EOF
-ok "Done."
+
 ##############################################################################
 #                           PIWIGO INSTALL
 ##############################################################################
 echo ""
-section "Installing Piwigo"
+echo "Downloading Piwigo..."
 echo ""
-echo "→ Downloading Piwigo..."
 iocage exec ${JAIL_NAME} mkdir -p /usr/local/www
 iocage exec ${JAIL_NAME} fetch https://piwigo.org/download/dlcounter.php?code=latest -o /tmp/piwigo.zip
-ok "Done."
 echo ""
-echo "→ Extracting Piwigo files..."
+echo "Extracting Piwigo files..."
 iocage exec ${JAIL_NAME} unzip -q /tmp/piwigo.zip -d /usr/local/www/
-ok "Extraction complete."
+echo ""
+echo "Extraction complete."
 echo ""
 
-echo "→ Setting up permission for /usr/local/www/piwigo"
 iocage exec ${JAIL_NAME} chown -R www:www /usr/local/www/piwigo
 iocage exec ${JAIL_NAME} chmod -R 755 /usr/local/www/piwigo
-ok "Done."
-echo ""
-ok "PIWIGO Installed!"
 
 ##############################################################################
 #                           WEB SERVER CONFIG
@@ -543,8 +432,9 @@ ok "PIWIGO Installed!"
 
 if [ "$WEB_SERVER" = "nginx" ]; then
 echo ""
-section "Configuring Nginx..."
+echo "Configuring Nginx..."
 echo ""
+
 ##############################################################################
 #                           nginx.conf (Global Tuning)
 ##############################################################################
@@ -566,17 +456,8 @@ echo ""
 # Enables open_file_cache
 # Increases file descriptor efficiency
 # Loads virtual host configs from conf.d
-echo ""
-echo "→ Applying Nginx tuning..."
-echo ""
-printf " %-50s : %s\n" "Maximum allowed HTTP upload size"        "${UPLOAD_LIMIT}"
-printf " %-50s : %s\n" "FastCGI buffer tuning for PHP performance"        "Enabled"
-printf " %-50s : %s\n" "Static file caching enabled for faster image delivery"        "30 days"
-printf " %-50s : %s\n" "Gzip compression enabled for reduced bandwidth usage"        "Yes"
-echo ""
 
-cat <<'EOF' | sed "s/__UPLOAD_LIMIT__/${UPLOAD_LIMIT}/" | \
-iocage exec "${JAIL_NAME}" tee /usr/local/etc/nginx/nginx.conf > /dev/null
+iocage exec ${JAIL_NAME} sh -c 'cat > /usr/local/etc/nginx/nginx.conf <<EOF
 load_module /usr/local/libexec/nginx/ngx_mail_module.so;
 load_module /usr/local/libexec/nginx/ngx_stream_module.so;
 
@@ -610,7 +491,7 @@ http {
     disable_symlinks off;
 
     # Buffer tuning for uploads
-    client_max_body_size __UPLOAD_LIMIT__;
+    client_max_body_size ${UPLOAD_LIMIT};
     client_body_buffer_size 512k;
     client_header_buffer_size 8k;
     large_client_header_buffers 4 32k;
@@ -645,7 +526,7 @@ http {
     # Load site configs
     include /usr/local/etc/nginx/conf.d/*.conf;
 }
-EOF
+EOF'
 
 iocage exec ${JAIL_NAME} mkdir -p /usr/local/etc/nginx/conf.d
 iocage exec ${JAIL_NAME} sh -c 'cat > /usr/local/etc/nginx/conf.d/piwigo.conf <<EOF
@@ -719,13 +600,12 @@ server {
     }
 }
 EOF'
-ok "Nginx Setup Done."
 
 elif [ "$WEB_SERVER" = "caddy" ]; then
 echo ""
-section "Configuring Caddy..."
+echo "Configuring Caddy..."
 echo ""
-ok "Done."
+
 ##############################################################################
 #                           Caddyfile Tuning – What This Version Does
 ##############################################################################
@@ -743,25 +623,21 @@ ok "Done."
 # Extends PHP timeouts for large uploads
 # Enables structured logging
 # Keeps configuration clean (Caddy smart defaults)
-echo ""
-echo "→ Applying Caddy tuning..."
-echo ""
-printf " %-55s : %s\n" "Maximum allowed HTTP upload size"        "${UPLOAD_LIMIT}"
-printf " %-55s : %s\n" "PHP-FPM communication via Unix socket for performance"        "/var/run/php-fpm.sock"
-printf " %-55s : %s\n" "Static file caching enabled for faster image delivery"        "30 days"
-echo ""
-cat <<'EOF' | sed "s/__UPLOAD_LIMIT__/${UPLOAD_LIMIT}/" | \
-iocage exec "${JAIL_NAME}" tee /usr/local/etc/caddy/Caddyfile > /dev/null
+echo "DEBUG: UPLOAD_LIMIT = ${UPLOAD_LIMIT}"
+iocage exec "${JAIL_NAME}" sh -c "cat > /usr/local/etc/caddy/Caddyfile <<EOF
 :80 {
 
     root * /usr/local/www/piwigo
 
+    # Enable compression (automatic brotli + gzip)
     encode zstd gzip
 
+    # Large uploads (gallery needs this)
     request_body {
-        max_size __UPLOAD_LIMIT__
+        max_size ${UPLOAD_LIMIT}
     }
 
+    # Security headers
     header {
         X-Content-Type-Options "nosniff"
         X-Frame-Options "SAMEORIGIN"
@@ -769,28 +645,33 @@ iocage exec "${JAIL_NAME}" tee /usr/local/etc/caddy/Caddyfile > /dev/null
         -Server
     }
 
+    # Block hidden files except /.well-known
     @hidden {
         path /.*
-        expression `{path}.startsWith("/.") && !{path}.startsWith("/.well-known")`
+        expression \`{path}.startsWith("/.") && !{path}.startsWith("/.well-known")\`
     }
     respond @hidden 403
 
+    # Block sensitive file types
     @blockedFiles {
         path *.ini *.log *.conf *.sql
     }
     respond @blockedFiles 403
 
+    # Prevent PHP execution in upload folder
     @uploadPhp {
         path_regexp uploadphp ^/upload/.*\.php$
     }
     respond @uploadPhp 403
 
+    # Static assets cache (huge performance boost for gallery)
     @static {
         path *.jpg *.jpeg *.png *.gif *.webp *.avif *.svg *.css *.js *.ico
     }
     header @static Cache-Control "public, max-age=2592000"
     file_server @static
 
+    # Main PHP handler
     php_fastcgi unix//var/run/php-fpm.sock {
         read_timeout 600s
         write_timeout 600s
@@ -798,16 +679,13 @@ iocage exec "${JAIL_NAME}" tee /usr/local/etc/caddy/Caddyfile > /dev/null
 
     file_server
 
+    # Logging (optional but recommended)
     log {
         output file /var/log/caddy/piwigo.log
         format console
     }
 }
-
-EOF
-ok "Done."
-echo""
-ok "Caddy Setup Done."
+EOF"
 
 fi
 
@@ -815,27 +693,24 @@ fi
 #                           START SERVICES
 ##############################################################################
 echo ""
-section "Starting services..."
+echo "Starting services..."
 echo ""
 iocage exec ${JAIL_NAME} service php_fpm start
 iocage exec ${JAIL_NAME} service mysql-server restart
 
 if [ "$WEB_SERVER" = "caddy" ]; then
-    iocage exec ${JAIL_NAME} service caddy start &
-spinner $!
+    iocage exec ${JAIL_NAME} service caddy start
 elif [ "$WEB_SERVER" = "nginx" ]; then
-    iocage exec ${JAIL_NAME} service nginx start &
-spinner $!
+    iocage exec ${JAIL_NAME} service nginx start
 fi
 # Getting Jail IP
 IP=$(iocage exec ${JAIL_NAME} ifconfig | awk '/inet / && $2 != "127.0.0.1" {print $2}')
-echo ""
-ok "Done"
+
 ##############################################################################
 #                           Credentials - INFO FILE
 ##############################################################################
 
-iocage exec ${JAIL_NAME} sh -c "cat > /root/credentials.txt <<EOF
+iocage exec ${JAIL_NAME} sh -c "cat > /root/${APP_NAME}-Info.txt <<EOF
 ---------------------------------------
 Piwigo Jail Information
 ---------------------------------------
@@ -857,28 +732,24 @@ http://${IP}/
 EOF"
 
 echo ""
-ok "Installation complete !"
+echo "Installation complete."
+echo ---------------------------------------
+echo Piwigo Jail Information
+echo ---------------------------------------
+echo Jail Name: ${JAIL_NAME}
+echo Web Server: ${WEB_SERVER}
+echo PHP Version: ${PHP_VERSION}
+echo MariaDB Version: ${MARIADB_VERSION}
 echo ""
-section "Piwigo Jail Information"
+echo Database Name: ${DB_NAME}
+echo Database User: ${DB_USER}
+echo Database Password: ${DB_PASS}
 echo ""
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Jail Name"        "${JAIL_NAME}"
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Web Server"        "${WEB_SERVER}"
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "PHP Version"        "${PHP_VERSION}"
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "MariaDB Version"        "${MARIADB_VERSION}"
+echo MariaDB Root Password: ${DB_ROOT_PASS}
 echo ""
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Database Name"        "${DB_NAME}"
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Database User"        "${DB_USER}"
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Database Password"        "${DB_PASS}"
+echo Piwigo Location: http://${IP}/
 echo ""
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "MariaDB Root Password"        "${DB_ROOT_PASS}"
-echo ""
-printf "${YELLOW}${BOLD} %-22s :${NC} %s\n" "Piwigo Location"        "http://${IP}/"
-echo ""
-printf "${BLUE}${BOLD}======================================================================${NC}\n"
-printf "${CYAN}${BOLD} 🛈  Access Piwigo via ${BLUE}http://${IP}. ${NC}\n"
-echo ""
-printf "${CYAN}${BOLD} 🛈  ${YELLOW}credentials.txt ${CYAN}saved in /root/ directory inside ${JAIL_NAME}.${NC}\n"
-echo ""
-printf "${CYAN}${BOLD} 🛈  Use ${YELLOW}127.0.0.1 ${CYAN}instead of ${YELLOW}localhost ${CYAN}in DB Configuration${NC}\n"
-printf "${BLUE}${BOLD}======================================================================${NC}\n"
-echo ""
+echo ---------------------------------------
+echo "Access your Piwigo instance via jail ${IP}."
+echo "${APP_NAME}-Info.txt saved in /root/"
+echo ---------------------------------------
