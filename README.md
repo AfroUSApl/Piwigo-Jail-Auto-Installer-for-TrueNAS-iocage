@@ -30,11 +30,13 @@ It automatically configures:
 
 ## ✅ Tested On
 
-- TrueNAS CORE 13 U7+
-- Jail Release: 13.5-RELEASE
-- Script Version: v2.1
-- PHP 8.4 and 8.3
-- MariaDB 10.11
+• TrueNAS CORE 13.0 U7
+• Jail release: 13.5-RELEASE
+• CPU: Intel Xeon E3-1270v2
+• 16GB RAM ECC
+• ZFS mirror (WD Red)
+• SSD system pool
+• lagg0 network interface
 
 ---
 
