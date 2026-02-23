@@ -30,13 +30,13 @@ It automatically configures:
 
 ## ✅ Tested On
 
-• TrueNAS CORE 13.0 U7
-• Jail release: 13.5-RELEASE
-• CPU: Intel Xeon E3-1270v2
-• 16GB RAM ECC
-• ZFS mirror (WD Red)
-• SSD system pool
-• lagg0 network interface
+- TrueNAS CORE 13.0 U7
+- Jail release: 13.5-RELEASE
+- CPU: Intel Xeon E3-1270v2
+- 16GB RAM ECC
+- ZFS mirror (WD Red)
+- SSD system pool
+- lagg0 network interface
 
 ---
 
