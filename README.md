@@ -32,8 +32,8 @@ It automatically configures:
 
 - TrueNAS CORE 13 U7+
 - Jail Release: 13.5-RELEASE
-- Script Version: v2.0
-- PHP 8.4
+- Script Version: v2.1
+- PHP 8.4 and 8.3
 - MariaDB 10.11
 
 ---
