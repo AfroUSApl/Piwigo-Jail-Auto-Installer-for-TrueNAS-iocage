@@ -28,7 +28,7 @@ DB_USER="piwigo"			# name of user for database used by Piwigo
 #
 AUTO_RAM="yes"                          # yes or no
 SERVER_RAM="8"                          # used only if AUTO_RAM=no
-VER="2.1"				# script version
+VER="2.2"				# script version
 #
 #
 #
@@ -72,39 +72,33 @@ fi
 #RAM profile assignment block
 if [ "$SERVER_RAM" = "4" ]; then
     INNODB_POOL="1G"
+    INNODB_LOG="256M"
+    TMP_TABLE="32M"
     PHP_CHILDREN="15"
-    PHP_START="4"
-    PHP_MIN_SPARE="2"
-    PHP_MAX_SPARE="6"
     OPCACHE_MEM="128"
     MAX_CONN="80"
     PHP_MEM="256M"
     UPLOAD_LIMIT="256M"
-    INNODB_LOG="256M"
 
 elif [ "$SERVER_RAM" = "8" ]; then
     INNODB_POOL="2G"
+    INNODB_LOG="384M"
+    TMP_TABLE="64M"
     PHP_CHILDREN="25"
-    PHP_START="6"
-    PHP_MIN_SPARE="4"
-    PHP_MAX_SPARE="10"
     OPCACHE_MEM="192"
     MAX_CONN="120"
     PHP_MEM="384M"
     UPLOAD_LIMIT="384M"
-    INNODB_LOG="384M"
 
 else
     INNODB_POOL="4G"
+    INNODB_LOG="512M"
+    TMP_TABLE="128M"
     PHP_CHILDREN="40"
-    PHP_START="10"
-    PHP_MIN_SPARE="8"
-    PHP_MAX_SPARE="20"
     OPCACHE_MEM="256"
     MAX_CONN="150"
     PHP_MEM="512M"
     UPLOAD_LIMIT="512M"
-    INNODB_LOG="512M"
 fi
 
 ##############################################################################
@@ -486,6 +480,10 @@ innodb_file_per_table=1
 
 # CONNECTIONS
 max_connections=${MAX_CONN}
+
+# Temp tables
+tmp_table_size = ${TMP_TABLE}
+max_heap_table_size = ${TMP_TABLE}
 
 # CACHE
 table_open_cache=4000
