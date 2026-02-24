@@ -39,15 +39,15 @@ It automatically configures:
 - lagg0 network interface
 
 ---
-# 🚀 What’s New in v2.2
+## 🚀 What’s New in v2.2
 
 - ✅ Dynamically control the maximum size of in-memory temporary tables
 
-# 🚀 What’s New in v2.1
+## 🚀 What’s New in v2.1
 
 - ✅ Progress Spinner and ASCII colors
 
-# 🚀 What’s New in v2.0
+## 🚀 What’s New in v2.0
 
 - ✅ Automatic RAM detection
 - ✅ Dynamic scaling for 4GB → 64GB+ servers
