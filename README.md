@@ -314,7 +314,7 @@ pkg upgrade -y
 # 🏷 Version Information
 
 - TrueNAS Target: 13.5-RELEASE
-- Script Version: v2.1
+- Script Version: v2.2
 - PHP: 8.4
 - MariaDB: 10.11
 - Web Server: Caddy or Nginx
